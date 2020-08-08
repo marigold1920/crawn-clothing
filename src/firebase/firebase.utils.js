@@ -11,7 +11,7 @@ const config = {
     messagingSenderId: "836276352367",
     appId: "1:836276352367:web:28ac8c79112a51076b249a",
     measurementId: "G-MMPXGE5X45"
-}
+};
 
 export const createUserProfileDocument = async (userAuth, additionalData) => {
     if (!userAuth) return;
@@ -36,6 +36,35 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
     }
 
     return userRef;
+}
+
+export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => {
+    const collectionRef = firestore.collection(collectionKey);
+    const batch = firestore.batch();
+
+    objectsToAdd.forEach(obj => {
+        const newDocRef = collectionRef.doc();
+        batch.set(newDocRef, obj);
+    })
+
+    return await batch.commit();
+}
+
+export const convertCollectionsSnapshotToMap = collections => {
+    const transformedCollecton = collections.docs.map(doc => {
+        const { title, items } = doc.data();
+        return {
+            routeName: encodeURI(title.toLowerCase()),
+            id: doc.id,
+            title,
+            items
+        }
+    })
+
+    return transformedCollecton.reduce((accumulator, collection) => {
+        accumulator[collection.title.toLowerCase()] = collection;
+        return accumulator
+    }, {})
 }
 
 firebase.initializeApp(config);
